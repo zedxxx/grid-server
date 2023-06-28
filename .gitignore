@@ -1,0 +1,8 @@
+.bin/*
+.dcu/*
+**/__history/*
+*.~dsk
+*.dbg
+*.dproj.local
+*.identcache
+*.dsk
