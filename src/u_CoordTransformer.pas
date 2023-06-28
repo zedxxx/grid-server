@@ -35,7 +35,8 @@ type
 implementation
 
 uses
-  System.SysUtils;
+  System.SysUtils,
+  System.Math;
 
 { TCoordTransformer }
 
@@ -101,7 +102,9 @@ end;
 function TCoordTransformer.GeogToProj(const AGeoLonLat: TDoublePoint; out AXY: TDoublePoint): Boolean;
 begin
   Result := (FGeogCS <> nil) and (FProjCS <> nil) and
-    geodetic_cs_to_projected_cs(FGeogCS, FProjCS, AGeoLonLat.X, AGeoLonLat.Y, AXY.X, AXY.Y);
+    geodetic_cs_to_projected_cs(FGeogCS, FProjCS, AGeoLonLat.X, AGeoLonLat.Y, AXY.X, AXY.Y) and
+    not (IsNan(AXY.X) or IsInfinite(AXY.X)) and
+    not (IsNan(AXY.Y) or IsInfinite(AXY.Y));
 end;
 
 function TCoordTransformer.ProjToGeog(const AXY: TDoublePoint; out AGeoLonLat: TDoublePoint): Boolean;

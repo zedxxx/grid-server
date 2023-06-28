@@ -4,6 +4,7 @@ interface
 
 uses
   System.Types,
+  System.Math,
   Proj4,
   t_GeoTypes,
   u_KmlWriter,
