@@ -240,7 +240,7 @@ begin
     SetLength(Result, 1);
     _InitSubItem(AGeogBounds, Result[0]);
   end else
-  if VZoneRight - VZoneLeft = 1 then begin
+  if (VZoneRight - VZoneLeft = 1) or ( (VZoneLeft = 60) and (VZoneRight = 1) ) then begin
     SetLength(Result, 2);
 
     VMiddle := gauss_kruger_zone_to_lon(VZoneRight);
