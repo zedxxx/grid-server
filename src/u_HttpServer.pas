@@ -2,7 +2,7 @@ unit u_HttpServer;
 
 interface
 
-procedure RunHttpServer;
+procedure RunHttpServer(const APortNumber: string; const AThreadsPoolSize: Integer);
 
 implementation
 
@@ -25,9 +25,6 @@ uses
   u_GridGenerator,
   u_GridGeneratorFactory;
 
-const
-  CHttpServerPort = '8888';
-
 type
   TGridHttpServer = class
   private
@@ -38,20 +35,20 @@ type
   protected
     function DoOnRequest(ACtxt: THttpServerRequestAbstract): Cardinal;
   public
-    constructor Create(const APort: UTF8String);
+    constructor Create(const APort: UTF8String; const APoolSize: Integer);
     destructor Destroy; override;
   end;
 
 { TGridHttpServer }
 
-constructor TGridHttpServer.Create(const APort: UTF8String);
+constructor TGridHttpServer.Create(const APort: UTF8String; const APoolSize: Integer);
 begin
   inherited Create;
 
   FGridGenerator := TGridGenerator.Create;
 
   FHttpServer := THttpAsyncServer.Create(
-    APort, nil, nil, '', 64, 30000,
+    APort, nil, nil, '', APoolSize, 30000,
     [hsoNoXPoweredHeader,
      hsoNoStats,
      hsoHeadersUnfiltered,
@@ -135,14 +132,16 @@ begin
   Writeln;
 end;
 
-procedure RunHttpServer;
+procedure RunHttpServer(const APortNumber: string; const AThreadsPoolSize: Integer);
 var
   VServer: TGridHttpServer;
 begin
-  VServer := TGridHttpServer.Create(CHttpServerPort);
+  VServer := TGridHttpServer.Create(UTF8Encode(APortNumber), AThreadsPoolSize);
   try
     VServer.PrintVersionInfo;
-    WriteLn('Running on localhost:', CHttpServerPort);
+    WriteLn('Running on localhost:', APortNumber);
+    WriteLn('Server threads pool size: ', AThreadsPoolSize);
+    Writeln('Press Enter to exit...');
     ReadLn;
   finally
     VServer.Free;
