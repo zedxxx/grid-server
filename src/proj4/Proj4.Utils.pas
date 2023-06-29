@@ -1,9 +1,9 @@
-unit Proj4Utils;
+unit Proj4.Utils;
 
 interface
 
 uses
-  Proj4;
+  Proj4.API;
 
 function geodetic_cs_to_cs(
   const ASrc, ADst: AnsiString;

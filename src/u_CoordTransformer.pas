@@ -3,9 +3,9 @@ unit u_CoordTransformer;
 interface
 
 uses
-  Proj4,
-  Proj4Defs,
-  Proj4Utils,
+  Proj4.API,
+  Proj4.Defines,
+  Proj4.Utils,
   t_GeoTypes;
 
 type
@@ -54,7 +54,9 @@ begin
     Exit;
   end;
 
-  init_proj4_dll();
+  if not init_proj4_dll() then begin
+    Exit;
+  end;
 
   FCtx := pj_ctx_alloc();
   if FCtx = nil then begin

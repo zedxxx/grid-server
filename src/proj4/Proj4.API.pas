@@ -1,4 +1,4 @@
-unit Proj4;
+unit Proj4.API;
 
 interface
 
@@ -44,6 +44,8 @@ type
   {$ENDIF}
 
 {$IFNDEF STATIC_PROJ4}
+
+{$IFDEF ENABLE_PROJ4_API_V4}
 var
   pj_init_plus: function(const Args: PAnsiChar): projPJ; cdecl;
   pj_init_plus_ctx: function(ctx: projCtx; const Args: PAnsiChar): projPJ; cdecl;
@@ -56,11 +58,16 @@ var
   pj_ctx_alloc: function(): projCtx; cdecl;
   pj_ctx_free: procedure(ctx: projCtx); cdecl;
   pj_get_release: function(): PAnsiChar; cdecl;
+{$ENDIF}
 
-  {$IFDEF ENABLE_PROJ4_API_V6}
+{$IFDEF ENABLE_PROJ4_API_V6}
+var
   proj_info: function(): PJ_INFO; cdecl;
-  {$ENDIF}
+{$ENDIF}
+
 {$ELSE}
+
+  {$IFDEF ENABLE_PROJ4_API_V4}
   function pj_init_plus(const Args: PAnsiChar): projPJ; cdecl; external proj4_dll;
   function pj_init_plus_ctx(ctx: projCtx; const Args: PAnsiChar): projPJ; cdecl; external proj4_dll;
   function pj_transform(const src, dst: projPJ; point_count: LongInt;
@@ -72,6 +79,8 @@ var
   function pj_ctx_alloc(): projCtx; cdecl; external proj4_dll;
   procedure pj_ctx_free(ctx: projCtx); cdecl; external proj4_dll;
   function pj_get_release(): PAnsiChar; cdecl; external proj4_dll;
+  {$ENDIF}
+
 {$ENDIF}
 
 function init_proj4_dll(
@@ -79,7 +88,22 @@ function init_proj4_dll(
   const ARaiseExceptions: Boolean = True
 ): Boolean; {$IFDEF STATIC_PROJ4} inline; {$ENDIF}
 
+function get_proj4_dll_version: AnsiString;
+
 implementation
+
+function get_proj4_dll_version: AnsiString;
+begin
+  Result := '';
+
+  {$IFDEF ENABLE_PROJ4_API_V4}
+  Result := pj_get_release();
+  {$ENDIF}
+
+  {$IFDEF ENABLE_PROJ4_API_V6}
+  Result := proj_info().release;
+  {$ENDIF}
+end;
 
 {$IFDEF STATIC_PROJ4}
 

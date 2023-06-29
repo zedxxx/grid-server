@@ -21,7 +21,7 @@ uses
   mormot.net.http,
   mormot.net.server,
   mormot.net.async,
-  Proj4,
+  Proj4.API,
   u_GridGenerator,
   u_GridGeneratorFactory;
 
@@ -126,8 +126,9 @@ procedure TGridHttpServer.PrintVersionInfo;
 begin
   Writeln(SYNOPSE_FRAMEWORK_NAME, ': ',  SYNOPSE_FRAMEWORK_FULLVERSION);
 
-  init_proj4_dll();
-  Writeln('proj4: ', pj_get_release());
+  if init_proj4_dll() then begin
+    Writeln('proj4: ', get_proj4_dll_version());
+  end;
 
   Writeln(FGridGenerator.GetInfo);
 

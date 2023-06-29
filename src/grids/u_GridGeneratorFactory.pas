@@ -37,7 +37,7 @@ uses
   System.StrUtils,
   System.Classes,
   System.IniFiles,
-  Proj4Defs,
+  Proj4.Defines,
   u_GeogGridGenerator,
   u_ProjGridGenerator;
 
@@ -90,6 +90,21 @@ begin
       DrawPoints := False;
       DrawLines := True;
       GeogInitStr := sk_42;
+      ProjInitStr := ''; // depends on zone number
+    end;
+
+    FItems.Add(VId, VItem);
+  end;
+
+  VId := 'utm';
+  if not FItems.ContainsKey(VId) then begin
+    VItem.GeneratorClass := TUtmGridGenerator;
+
+    with VItem.GeneratorConfig do begin
+      GridId := VId;
+      DrawPoints := False;
+      DrawLines := True;
+      GeogInitStr := wgs_84;
       ProjInitStr := ''; // depends on zone number
     end;
 

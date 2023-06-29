@@ -6,8 +6,8 @@ uses
   System.Types,
   System.SysUtils,
   System.Math,
-  Proj4,
-  Proj4Utils,
+  Proj4.API,
+  Proj4.Utils,
   t_GeoTypes,
   u_CoordTransformer,
   u_GridGeneratorAbstract;

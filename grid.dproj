@@ -80,10 +80,11 @@
         <DCCReference Include="src\u_KmlWriter.pas"/>
         <DCCReference Include="src\u_HttpServer.pas"/>
         <DCCReference Include="src\grids\u_GeogGridGenerator.pas"/>
-        <DCCReference Include="src\proj4\Proj4.pas"/>
-        <DCCReference Include="src\proj4\Proj4Defs.pas"/>
-        <DCCReference Include="src\proj4\Proj4SK42.pas"/>
-        <DCCReference Include="src\proj4\Proj4Utils.pas"/>
+        <DCCReference Include="src\proj4\Proj4.API.pas"/>
+        <DCCReference Include="src\proj4\Proj4.Defines.pas"/>
+        <DCCReference Include="src\proj4\Proj4.GaussKruger.pas"/>
+        <DCCReference Include="src\proj4\Proj4.Utils.pas"/>
+        <DCCReference Include="src\proj4\Proj4.UTM.pas"/>
         <DCCReference Include="src\u_CoordTransformer.pas"/>
         <DCCReference Include="src\grids\u_GridGenerator.pas"/>
         <DCCReference Include="src\grids\u_GridGeneratorAbstract.pas"/>
