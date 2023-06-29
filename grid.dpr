@@ -54,6 +54,12 @@ begin
   {$IFDEF DEBUG}
   ReportMemoryLeaksOnShutdown := True;
   {$ENDIF}
-  DoMain;
+  try
+    DoMain;
+  except
+    on E: Exception do begin
+      Writeln(E.ClassName + ': ' + E.Message);
+    end;
+  end;
 end.
 
