@@ -26,6 +26,10 @@ begin
   end;
 
   AZone := Floor( (ALon + 180) / 6 ) + 1;
+  if AZone > 60 { ALon = 180 } then begin
+    AZone := 60;
+  end;
+
   ALatBand := CMgrsLatBands[1 + Floor(ALat / 8 + 10)];
 
   // adjust zone for Norway

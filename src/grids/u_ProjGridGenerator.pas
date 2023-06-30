@@ -26,11 +26,15 @@ type
 
   TProjGridGenerator = class(TGridGeneratorAbstract)
   protected
+    FGeogLatMax: Double;
+    FGeogLatMin: Double;
+
     FCache: TStringList;
 
     procedure AddPoints;
     procedure AddLines;
 
+    function CheckGeogBounds(var AGeogBounds: TTileBounds): Boolean;
     function GetCoordTransformer(const AGeogBounds: TTileBounds): TArrayOfBoundedCoordTransformer; virtual;
   public
     function GetTile(const X, Y, Z: Integer; const AStep: TDoublePoint): RawByteString; override;
@@ -42,11 +46,15 @@ type
   TGaussKrugerGridGenerator = class(TProjGridGenerator)
   protected
     function GetCoordTransformer(const AGeogBounds: TTileBounds): TArrayOfBoundedCoordTransformer; override;
+  public
+    constructor Create(const AConfig: TGridGeneratorConfig); override;
   end;
 
   TUtmGridGenerator = class(TProjGridGenerator)
   protected
     function GetCoordTransformer(const AGeogBounds: TTileBounds): TArrayOfBoundedCoordTransformer; override;
+  public
+    constructor Create(const AConfig: TGridGeneratorConfig); override;
   end;
 
 implementation
@@ -66,12 +74,16 @@ begin
 end;
 
 { TProjGridGenerator }
+
 constructor TProjGridGenerator.Create;
 begin
   inherited Create(AConfig);
 
   FCache := TStringList.Create(dupError, True, True);
   FCache.OwnsObjects := True;
+
+  FGeogLatMax := 90;
+  FGeogLatMin := -90;
 end;
 
 destructor TProjGridGenerator.Destroy;
@@ -152,15 +164,20 @@ begin
 
   FLonLatRect := TilePosToLonLatRect(X, Y, Z); // wgs84
 
-  if GetGeogBounds(FLonLatRect, FGeogBounds) then begin
-
+  if GetGeogBounds(FLonLatRect, FGeogBounds) and
+     CheckGeogBounds(FGeogBounds) then
+  begin
     VItems := GetCoordTransformer(FGeogBounds);
 
     for I := 0 to Length(VItems) - 1 do begin
       FGeogBounds := VItems[I].Bounds;
       FProjCoordTransformer := VItems[I].CoordTransformer;
 
-      if (FProjCoordTransformer <> nil) and GetProjBounds(FGeogBounds, FProjBounds) then begin
+      if FProjCoordTransformer = nil then begin
+        Continue;
+      end;
+
+      if GetProjBounds(FGeogBounds, FProjBounds) then begin
 
         FGridRect.Left := Floor(FProjBounds.Left / FStep.X);
         FGridRect.Top := Ceil(FProjBounds.Top / FStep.Y);
@@ -186,6 +203,31 @@ begin
   Result := FKmlWriter.GetContent;
 end;
 
+function TProjGridGenerator.CheckGeogBounds(var AGeogBounds: TTileBounds): Boolean;
+begin
+  if AGeogBounds.Top > FGeogLatMax then begin
+    UpdateTileBoundsTop(AGeogBounds, FGeogLatMax);
+  end;
+
+  if AGeogBounds.Bottom < FGeogLatMin then begin
+    UpdateTileBoundsBottom(AGeogBounds, FGeogLatMin);
+  end;
+
+  // fix 180th meridian crossing
+  if Abs(AGeogBounds.Left - AGeogBounds.Right) > 180 then begin
+    if (FLonLatRect.Left < 0) and (AGeogBounds.Left > 0) then begin
+      UpdateTileBoundsLeft(AGeogBounds, -180);
+    end;
+    if (FLonLatRect.Right > 0) and (AGeogBounds.Right < 0) then begin
+      UpdateTileBoundsRight(AGeogBounds, 180);
+    end;
+  end;
+
+  Result :=
+    (AGeogBounds.Top > AGeogBounds.Bottom) and
+    (AGeogBounds.Left < AGeogBounds.Right);
+end;
+
 function TProjGridGenerator.GetCoordTransformer(const AGeogBounds: TTileBounds): TArrayOfBoundedCoordTransformer;
 begin
   if FConfig.ProjInitStr <> '' then begin
@@ -202,6 +244,13 @@ begin
 end;
 
 { TGaussKrugerGridGenerator }
+
+constructor TGaussKrugerGridGenerator.Create(const AConfig: TGridGeneratorConfig);
+begin
+  inherited Create(AConfig);
+  FGeogLatMax := 84;
+  FGeogLatMin := -80;
+end;
 
 function TGaussKrugerGridGenerator.GetCoordTransformer(const AGeogBounds: TTileBounds): TArrayOfBoundedCoordTransformer;
 
@@ -241,10 +290,6 @@ var
   VTop, VBottom: TDoublePoint;
 begin
   Result := nil;
-
-  if (AGeogBounds.Top > 84) or (AGeogBounds.Bottom < -80) then begin
-    Exit;
-  end;
 
   VZoneLeft := sk42_long_to_gauss_kruger_zone(AGeogBounds.Left);
   VZoneRight := sk42_long_to_gauss_kruger_zone(AGeogBounds.Right);
@@ -291,6 +336,13 @@ end;
 
 { TUtmGridGenerator }
 
+constructor TUtmGridGenerator.Create(const AConfig: TGridGeneratorConfig);
+begin
+  inherited Create(AConfig);
+  FGeogLatMax := 84;
+  FGeogLatMin := -80;
+end;
+
 function TUtmGridGenerator.GetCoordTransformer(const AGeogBounds: TTileBounds): TArrayOfBoundedCoordTransformer;
 
 type
@@ -332,6 +384,9 @@ var
     Result := (ALat > -80) and (ALat < 84);
     if Result then begin
       AZone := Floor( (ALon + 180) / 6 ) + 1;
+      if AZone > 60 { ALon = 180 } then begin
+        AZone := 60;
+      end;
       ALatBand := CLatBand[1 + Floor(ALat / 8 + 10)];
     end;
   end;

@@ -42,7 +42,7 @@ type
 
     procedure DoAddGeogLine(var AGeogP1, AGeogP2: TDoublePoint; const ADesc: string);
     procedure DoAddProjLine(const AProjP1, AProjP2: TDoublePoint; const ADesc: string);
-    procedure DoIntersectWithGeogBounds(var P1, P2: TDoublePoint);
+    procedure DoIntersectWithGeogBounds(var P1, P2: TDoublePoint; const ABounds: TTileBounds);
   public
     function GetTile(const X, Y, Z: Integer; const AStep: TDoublePoint): RawByteString; virtual; abstract;
     property GridId: string read GetGridId;
@@ -84,14 +84,24 @@ begin
   Result := FConfig.GridId;
 end;
 
-procedure TGridGeneratorAbstract.DoIntersectWithGeogBounds(var P1, P2: TDoublePoint);
+procedure TGridGeneratorAbstract.DoIntersectWithGeogBounds(var P1, P2: TDoublePoint; const ABounds: TTileBounds);
 var
   A1, A2: PDoublePoint;
   B: TDoublePoint;
 begin
+  // fix 180th meridian crossing
+  if Abs(P1.X - P2.X) > 180 then begin
+    if (ABounds.Left < 0) and (P1.X > 0) then begin
+      P1.X := -180;
+    end;
+    if (ABounds.Right > 0) and (P2.X < 0)  then begin
+      P2.X := 180;
+    end;
+  end;
+
   // Top
-  A1 := @FGeogBounds.TopLeft;
-  A2 := @FGeogBounds.TopRight;
+  A1 := @ABounds.TopLeft;
+  A2 := @ABounds.TopRight;
 
   if CalcLinesIntersectionPoint(A1, A2, @P1, @P2, @B) then begin
     if P1.Y > B.Y then begin
@@ -103,8 +113,8 @@ begin
   end;
 
   // Bottom
-  A1 := @FGeogBounds.BottomLeft;
-  A2 := @FGeogBounds.BottomRight;
+  A1 := @ABounds.BottomLeft;
+  A2 := @ABounds.BottomRight;
 
   if CalcLinesIntersectionPoint(A1, A2, @P1, @P2, @B) then begin
     if P2.Y < B.Y then begin
@@ -116,8 +126,8 @@ begin
   end;
 
   // Left
-  A1 := @FGeogBounds.TopLeft;
-  A2 := @FGeogBounds.BottomLeft;
+  A1 := @ABounds.TopLeft;
+  A2 := @ABounds.BottomLeft;
 
   if CalcLinesIntersectionPoint(A1, A2, @P1, @P2, @B) then begin
     if P1.X < B.X then begin
@@ -129,8 +139,8 @@ begin
   end;
 
   // Right
-  A1 := @FGeogBounds.TopRight;
-  A2 := @FGeogBounds.BottomRight;
+  A1 := @ABounds.TopRight;
+  A2 := @ABounds.BottomRight;
 
   if CalcLinesIntersectionPoint(A1, A2, @P1, @P2, @B) then begin
     if P2.X > B.X then begin
@@ -156,12 +166,20 @@ begin
 end;
 
 procedure TGridGeneratorAbstract.DoAddGeogLine(var AGeogP1, AGeogP2: TDoublePoint; const ADesc: string);
+var
+  VLonLatBounds: TTileBounds;
 begin
-  DoIntersectWithGeogBounds(AGeogP1, AGeogP2);
+  // intersect with zone bounds
+  DoIntersectWithGeogBounds(AGeogP1, AGeogP2, FGeogBounds);
 
   if FGeogCoordTransformer.GeogToWgs84(AGeogP1) and
      FGeogCoordTransformer.GeogToWgs84(AGeogP2) then
   begin
+    // intersect with tile bounds
+    VLonLatBounds := TileBounds(FLonLatRect);
+    UpdateTileBoundsMinMax(VLonLatBounds);
+    DoIntersectWithGeogBounds(AGeogP1, AGeogP2, VLonLatBounds);
+
     FKmlWriter.AddLine(AGeogP1, AGeogP2, ADesc);
   end;
 end;

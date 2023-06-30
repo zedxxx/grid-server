@@ -17,6 +17,10 @@ function IsLonLatInRect(const ALonLat: TDoublePoint; const ARect: TDoubleRect): 
 
 function TileBounds(const ARect: TDoubleRect): TTileBounds; inline;
 procedure UpdateTileBoundsMinMax(var ATileBounds: TTileBounds); inline;
+procedure UpdateTileBoundsLeft(var ATileBounds: TTileBounds; const ALeft: Double); inline;
+procedure UpdateTileBoundsRight(var ATileBounds: TTileBounds; const ARight: Double); inline;
+procedure UpdateTileBoundsTop(var ATileBounds: TTileBounds; const ATop: Double); inline;
+procedure UpdateTileBoundsBottom(var ATileBounds: TTileBounds; const ABottom: Double); inline;
 
 function CalcLinesIntersectionPoint(
   const A1, A2: PDoublePoint;
@@ -71,6 +75,34 @@ begin
   ATileBounds.Bottom := Min(ATileBounds.BottomLeft.Y, ATileBounds.BottomRight.Y);
   ATileBounds.Left := Min(ATileBounds.TopLeft.X, ATileBounds.BottomLeft.X);
   ATileBounds.Right := Max(ATileBounds.TopRight.X, ATileBounds.BottomRight.X);
+end;
+
+procedure UpdateTileBoundsLeft(var ATileBounds: TTileBounds; const ALeft: Double);
+begin
+  ATileBounds.Left := ALeft;
+  ATileBounds.TopLeft.X := ALeft;
+  ATileBounds.BottomLeft.X := ALeft;
+end;
+
+procedure UpdateTileBoundsRight(var ATileBounds: TTileBounds; const ARight: Double);
+begin
+  ATileBounds.Right := ARight;
+  ATileBounds.TopRight.X := ARight;
+  ATileBounds.BottomRight.X := ARight;
+end;
+
+procedure UpdateTileBoundsTop(var ATileBounds: TTileBounds; const ATop: Double);
+begin
+  ATileBounds.Top := ATop;
+  ATileBounds.TopLeft.Y := ATop;
+  ATileBounds.TopRight.Y := ATop;
+end;
+
+procedure UpdateTileBoundsBottom(var ATileBounds: TTileBounds; const ABottom: Double);
+begin
+  ATileBounds.Bottom := ABottom;
+  ATileBounds.BottomLeft.Y := ABottom;
+  ATileBounds.BottomRight.Y := ABottom;
 end;
 
 function CalcLinesIntersectionPoint(
