@@ -122,6 +122,20 @@ begin
   end;
 end;
 
+function IsTooManyLines(const AZoom: Integer; const AStep: TDoublePoint): Boolean;
+const
+  CMaxGridLinesPerTile = 24;
+var
+  VTileRes: Double;
+begin
+  VTileRes := 360 / (1 shl AZoom); // degrees per tile on the Equator
+
+  Result :=
+    (AZoom < 2) or
+    (AStep.X * CMaxGridLinesPerTile < VTileRes) or
+    (AStep.Y * CMaxGridLinesPerTile < VTileRes);
+end;
+
 function TGeogGridGenerator.GetTile(const X, Y, Z: Integer; const AStep: TDoublePoint): RawByteString;
 begin
   Result := '';
@@ -142,8 +156,10 @@ begin
 
   FLonLatRect := TilePosToLonLatRect(X, Y, Z); // wgs84
 
-  if GetGeogBounds(FLonLatRect, FGeogBounds) then begin
-
+  if not IsTooManyLines(Z, FStep) and
+     GetGeogBounds(FLonLatRect, FGeogBounds) and
+     CheckGeogBounds(FGeogBounds) then
+  begin
     FGridRect.Left := Floor(FGeogBounds.Left / FStep.X);
     FGridRect.Top := Ceil(FGeogBounds.Top / FStep.Y);
     FGridRect.Right := Ceil(FGeogBounds.Right / FStep.X);
@@ -152,6 +168,7 @@ begin
     if FConfig.DrawPoints then begin
       AddPoints;
     end;
+
     if FConfig.DrawLines then begin
       AddLines;
     end;

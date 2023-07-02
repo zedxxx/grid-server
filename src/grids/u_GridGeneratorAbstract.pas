@@ -23,6 +23,9 @@ type
   private
     function GetGridId: string;
   protected
+    FGeogLatMax: Double;
+    FGeogLatMin: Double;
+
     FKmlWriter: TKmlWriter;
     FConfig: TGridGeneratorConfig;
 
@@ -36,6 +39,8 @@ type
 
     FGeogCoordTransformer: TCoordTransformer;
     FProjCoordTransformer: TCoordTransformer;
+
+    function CheckGeogBounds(var AGeogBounds: TTileBounds): Boolean;
 
     function GetGeogBounds(const ALonLatRect: TDoubleRect; out AGeogBounds: TTileBounds): Boolean;
     function GetProjBounds(const AGeogBounds: TTileBounds; out AProjBounds: TTileBounds): Boolean;
@@ -69,6 +74,9 @@ begin
   FKmlWriter := TKmlWriter.Create;
   FGeogCoordTransformer := TCoordTransformer.Create(FConfig.GeogInitStr);
   FProjCoordTransformer := nil;
+
+  FGeogLatMax := 90;
+  FGeogLatMin := -90;
 end;
 
 destructor TGridGeneratorAbstract.Destroy;
@@ -214,6 +222,31 @@ begin
   if Result then begin
     UpdateTileBoundsMinMax(AProjBounds);
   end;
+end;
+
+function TGridGeneratorAbstract.CheckGeogBounds(var AGeogBounds: TTileBounds): Boolean;
+begin
+  if AGeogBounds.Top > FGeogLatMax then begin
+    UpdateTileBoundsTop(AGeogBounds, FGeogLatMax);
+  end;
+
+  if AGeogBounds.Bottom < FGeogLatMin then begin
+    UpdateTileBoundsBottom(AGeogBounds, FGeogLatMin);
+  end;
+
+  // fix 180th meridian crossing
+  if Abs(AGeogBounds.Left - AGeogBounds.Right) > 180 then begin
+    if (FLonLatRect.Left < 0) and (AGeogBounds.Left > 0) then begin
+      UpdateTileBoundsLeft(AGeogBounds, -180);
+    end;
+    if (FLonLatRect.Right > 0) and (AGeogBounds.Right < 0) then begin
+      UpdateTileBoundsRight(AGeogBounds, 180);
+    end;
+  end;
+
+  Result :=
+    (AGeogBounds.Top > AGeogBounds.Bottom) and
+    (AGeogBounds.Left < AGeogBounds.Right);
 end;
 
 end.

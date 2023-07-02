@@ -26,15 +26,11 @@ type
 
   TProjGridGenerator = class(TGridGeneratorAbstract)
   protected
-    FGeogLatMax: Double;
-    FGeogLatMin: Double;
-
     FCache: TStringList;
 
     procedure AddPoints;
     procedure AddLines;
 
-    function CheckGeogBounds(var AGeogBounds: TTileBounds): Boolean;
     function GetCoordTransformer(const AGeogBounds: TTileBounds): TArrayOfBoundedCoordTransformer; virtual;
   public
     function GetTile(const X, Y, Z: Integer; const AStep: TDoublePoint): RawByteString; override;
@@ -85,9 +81,6 @@ begin
   FCache.CaseSensitive := True;
   FCache.Duplicates := dupError;
   FCache.Sorted := True;
-
-  FGeogLatMax := 90;
-  FGeogLatMin := -90;
 end;
 
 destructor TProjGridGenerator.Destroy;
@@ -166,6 +159,7 @@ begin
   VTileRes := 2 * Pi * CEarthRadius / (1 shl AZoom); // meters per tile on the Equator
 
   Result :=
+    (AZoom < 2) or
     (AStep.X * CMaxGridLinesPerTile < VTileRes) or
     (AStep.Y * CMaxGridLinesPerTile < VTileRes);
 end;
@@ -215,31 +209,6 @@ begin
   end;
 
   Result := FKmlWriter.GetContent;
-end;
-
-function TProjGridGenerator.CheckGeogBounds(var AGeogBounds: TTileBounds): Boolean;
-begin
-  if AGeogBounds.Top > FGeogLatMax then begin
-    UpdateTileBoundsTop(AGeogBounds, FGeogLatMax);
-  end;
-
-  if AGeogBounds.Bottom < FGeogLatMin then begin
-    UpdateTileBoundsBottom(AGeogBounds, FGeogLatMin);
-  end;
-
-  // fix 180th meridian crossing
-  if Abs(AGeogBounds.Left - AGeogBounds.Right) > 180 then begin
-    if (FLonLatRect.Left < 0) and (AGeogBounds.Left > 0) then begin
-      UpdateTileBoundsLeft(AGeogBounds, -180);
-    end;
-    if (FLonLatRect.Right > 0) and (AGeogBounds.Right < 0) then begin
-      UpdateTileBoundsRight(AGeogBounds, 180);
-    end;
-  end;
-
-  Result :=
-    (AGeogBounds.Top > AGeogBounds.Bottom) and
-    (AGeogBounds.Left < AGeogBounds.Right);
 end;
 
 function TProjGridGenerator.GetCoordTransformer(const AGeogBounds: TTileBounds): TArrayOfBoundedCoordTransformer;
