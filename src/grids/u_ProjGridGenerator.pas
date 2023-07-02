@@ -260,7 +260,7 @@ function TGaussKrugerGridGenerator.GetCoordTransformer(const AGeogBounds: TTileB
 
   procedure _InitSubItem(const ASubBounds: TTileBounds; var ASubItem: TBoundedCoordTransformer);
   const
-    CNorthSouthId: array [Boolean] of string = ('N', 'S');
+    CNorthSouthId: array [False..True] of string = ('S', 'N');
   var
     I: Integer;
     VId: string;
@@ -350,7 +350,7 @@ function TUtmGridGenerator.GetCoordTransformer(const AGeogBounds: TTileBounds): 
 
   procedure _InitSubItem(const ASubBounds: TTileBounds; var ASubItem: TBoundedCoordTransformer);
   const
-    CNorthSouthId: array [Boolean] of string = ('N', 'S');
+    CNorthSouthId: array [False..True] of string = ('S', 'N');
   var
     I: Integer;
     VId: string;
