@@ -3,9 +3,9 @@ unit u_ProjGridGenerator;
 interface
 
 uses
-  System.Types,
-  System.Classes,
-  System.Math,
+  Types,
+  Classes,
+  Math,
   Proj4.API,
   Proj4.Defines,
   Proj4.Utils,
@@ -60,7 +60,7 @@ type
 implementation
 
 uses
-  System.SysUtils,
+  SysUtils,
   u_GeoFunc;
 
 function CoordToStr(const AValue: Double): string; inline; overload;
@@ -75,12 +75,16 @@ end;
 
 { TProjGridGenerator }
 
-constructor TProjGridGenerator.Create;
+constructor TProjGridGenerator.Create(const AConfig: TGridGeneratorConfig);
 begin
   inherited Create(AConfig);
 
-  FCache := TStringList.Create(dupError, True, True);
+  FCache := TStringList.Create;
+
   FCache.OwnsObjects := True;
+  FCache.CaseSensitive := True;
+  FCache.Duplicates := dupError;
+  FCache.Sorted := True;
 
   FGeogLatMax := 90;
   FGeogLatMin := -90;
@@ -283,7 +287,6 @@ function TGaussKrugerGridGenerator.GetCoordTransformer(const AGeogBounds: TTileB
   end;
 
 var
-  I: Integer;
   VZoneLeft, VZoneRight: Integer;
   VSubBounds: TTileBounds;
   VMiddle: Double;
@@ -345,50 +348,30 @@ end;
 
 function TUtmGridGenerator.GetCoordTransformer(const AGeogBounds: TTileBounds): TArrayOfBoundedCoordTransformer;
 
-type
-  TGetUtmZoneFunc = function(const ALon, ALat: Double; out AZone: Integer; out ALatBand: Char): Boolean;
-var
-  VGetUtmZone: TGetUtmZoneFunc;
-
   procedure _InitSubItem(const ASubBounds: TTileBounds; var ASubItem: TBoundedCoordTransformer);
+  const
+    CNorthSouthId: array [Boolean] of string = ('N', 'S');
   var
     I: Integer;
     VId: string;
     VZone: Integer;
-    VLatBand: Char;
+    VIsNorth: Boolean;
     VCoordTransformer: TCoordTransformer;
   begin
-    if not VGetUtmZone(ASubBounds.Left, ASubBounds.Top, VZone, VLatBand) then begin
-      Assert(False);
-      ASubItem.CoordTransformer := nil;
-      Exit;
-    end;
+    VZone := wgs84_lon_to_utm_zone(ASubBounds.Left);
+    VIsNorth := ASubBounds.Bottom > 0;
 
-    VId := IntToStr(VZone) + VLatBand;
+    VId := IntToStr(VZone) + CNorthSouthId[VIsNorth];
 
     if FCache.Find(VId, I) then begin
       VCoordTransformer := TCoordTransformer(FCache.Objects[I]);
     end else begin
-      VCoordTransformer := TCoordTransformer.Create(wgs_84, get_utm_init(VZone, VLatBand));
+      VCoordTransformer := TCoordTransformer.Create(wgs_84, get_utm_init(VZone, VIsNorth));
       FCache.AddObject(VId, VCoordTransformer);
     end;
 
     ASubItem.Bounds := ASubBounds;
     ASubItem.CoordTransformer := VCoordTransformer;
-  end;
-
-  function InternalGetUtmZoneSimple(const ALon, ALat: Double; out AZone: Integer; out ALatBand: Char): Boolean;
-  const
-    CLatBand = 'CDEFGHJKLMNPQRSTUVWXX';
-  begin
-    Result := (ALat > -80) and (ALat < 84);
-    if Result then begin
-      AZone := Floor( (ALon + 180) / 6 ) + 1;
-      if AZone > 60 { ALon = 180 } then begin
-        AZone := 60;
-      end;
-      ALatBand := CLatBand[1 + Floor(ALat / 8 + 10)];
-    end;
   end;
 
 var
@@ -400,14 +383,8 @@ var
 begin
   Result := nil;
 
-  //VGetUtmZone := @wgs84_lonlat_to_utm_zone;
-  VGetUtmZone := @InternalGetUtmZoneSimple;
-
-  if not VGetUtmZone(AGeogBounds.Left, AGeogBounds.Top, VZoneLeft, VLatBandTop) or
-     not VGetUtmZone(AGeogBounds.Right, AGeogBounds.Bottom, VZoneRight, VLatBandBottom) then
-  begin
-    Exit;
-  end;
+  VZoneLeft := wgs84_lon_to_utm_zone(AGeogBounds.Left);
+  VZoneRight := wgs84_lon_to_utm_zone(AGeogBounds.Right);
 
   if VZoneLeft = VZoneRight then begin
     SetLength(Result, 1);
@@ -417,7 +394,7 @@ begin
 
     SetLength(Result, 2);
 
-    VMiddle := utm_zone_to_wgs84_lon(VZoneRight, #0 {ignore special cases});
+    VMiddle := utm_zone_to_wgs84_lon(VZoneRight);
 
     // Left
     VSubBounds := AGeogBounds;

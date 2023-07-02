@@ -3,7 +3,7 @@ program grid;
 {$APPTYPE CONSOLE}
 
 uses
-  System.SysUtils,
+  SysUtils,
   u_GeoFunc in 'src\u_GeoFunc.pas',
   u_KmlWriter in 'src\u_KmlWriter.pas',
   u_HttpServer in 'src\u_HttpServer.pas',

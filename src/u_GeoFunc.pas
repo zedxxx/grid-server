@@ -3,9 +3,9 @@ unit u_GeoFunc;
 interface
 
 uses
-  System.Classes,
-  System.SysUtils,
-  System.Math,
+  Classes,
+  SysUtils,
+  Math,
   t_GeoTypes;
 
 function DoublePoint(const X, Y: Double): TDoublePoint; inline;

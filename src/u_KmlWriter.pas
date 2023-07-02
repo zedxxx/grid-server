@@ -3,8 +3,8 @@ unit u_KmlWriter;
 interface
 
 uses
-  System.Classes,
-  System.SysUtils,
+  Classes,
+  SysUtils,
   t_GeoTypes;
 
 type

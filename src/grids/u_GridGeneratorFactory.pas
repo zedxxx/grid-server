@@ -3,9 +3,9 @@ unit u_GridGeneratorFactory;
 interface
 
 uses
-  System.Types,
-  System.SysUtils,
-  System.Generics.Collections,
+  Types,
+  SysUtils,
+  Generics.Collections,
   u_GridGeneratorAbstract;
 
 type
@@ -34,9 +34,8 @@ type
 implementation
 
 uses
-  System.StrUtils,
-  System.Classes,
-  System.IniFiles,
+  Classes,
+  IniFiles,
   Proj4.Defines,
   u_GeogGridGenerator,
   u_ProjGridGenerator;

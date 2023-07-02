@@ -3,8 +3,8 @@ unit u_GridGeneratorAbstract;
 interface
 
 uses
-  System.Types,
-  System.Math,
+  Types,
+  Math,
   Proj4.API,
   t_GeoTypes,
   u_KmlWriter,
@@ -56,7 +56,7 @@ type
 implementation
 
 uses
-  System.SysUtils,
+  SysUtils,
   u_GeoFunc;
 
 { TGridGeneratorAbstract }

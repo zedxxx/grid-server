@@ -6,3 +6,5 @@
 *.dproj.local
 *.identcache
 *.dsk
+.lib/*
+*.lps

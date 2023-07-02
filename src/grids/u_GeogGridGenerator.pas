@@ -3,9 +3,9 @@ unit u_GeogGridGenerator;
 interface
 
 uses
-  System.Types,
-  System.SysUtils,
-  System.Math,
+  Types,
+  SysUtils,
+  Math,
   Proj4.API,
   Proj4.Utils,
   t_GeoTypes,

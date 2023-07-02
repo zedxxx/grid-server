@@ -10,8 +10,8 @@ implementation
 
 uses
   {$I mormot.uses.inc} // may include mormot.core.fpcx64mm.pas
-  System.Classes,
-  System.SysUtils,
+  Classes,
+  SysUtils,
   mormot.core.unicode,
   mormot.core.base,
   mormot.core.os,
@@ -22,8 +22,7 @@ uses
   mormot.net.server,
   mormot.net.async,
   Proj4.API,
-  u_GridGenerator,
-  u_GridGeneratorFactory;
+  u_GridGenerator;
 
 type
   TGridHttpServer = class

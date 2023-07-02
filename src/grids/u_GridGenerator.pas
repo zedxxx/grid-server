@@ -3,9 +3,8 @@ unit u_GridGenerator;
 interface
 
 uses
-  System.SyncObjs,
-  System.Classes,
-  t_GeoTypes,
+  SyncObjs,
+  Classes,
   u_ObjectStack,
   u_GridGeneratorAbstract,
   u_GridGeneratorFactory;
@@ -40,7 +39,8 @@ type
 implementation
 
 uses
-  System.SysUtils,
+  SysUtils,
+  t_GeoTypes,
   u_GeoFunc;
 
 { TGridGenerator }

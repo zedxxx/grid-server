@@ -35,8 +35,8 @@ type
 implementation
 
 uses
-  System.SysUtils,
-  System.Math;
+  SysUtils,
+  Math;
 
 { TCoordTransformer }
 
