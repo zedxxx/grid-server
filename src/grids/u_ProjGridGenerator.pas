@@ -156,6 +156,20 @@ begin
   end;
 end;
 
+function IsTooManyLines(const AZoom: Integer; const AStep: TDoublePoint): Boolean;
+const
+  CEarthRadius = 6378137; // meters
+  CMaxGridLinesPerTile = 64;
+var
+  VTileRes: Double;
+begin
+  VTileRes := 2 * Pi * CEarthRadius / (1 shl AZoom); // meters per tile on the Equator
+
+  Result :=
+    (AStep.X * CMaxGridLinesPerTile < VTileRes) or
+    (AStep.Y * CMaxGridLinesPerTile < VTileRes);
+end;
+
 function TProjGridGenerator.GetTile(const X, Y, Z: Integer; const AStep: TDoublePoint): RawByteString;
 var
   I: Integer;
@@ -168,7 +182,8 @@ begin
 
   FLonLatRect := TilePosToLonLatRect(X, Y, Z); // wgs84
 
-  if GetGeogBounds(FLonLatRect, FGeogBounds) and
+  if not IsTooManyLines(Z, FStep) and
+     GetGeogBounds(FLonLatRect, FGeogBounds) and
      CheckGeogBounds(FGeogBounds) then
   begin
     VItems := GetCoordTransformer(FGeogBounds);
@@ -188,17 +203,12 @@ begin
         FGridRect.Right := Ceil(FProjBounds.Right / FStep.X);
         FGridRect.Bottom := Floor(FProjBounds.Bottom / FStep.Y);
 
-        if (Abs(FGridRect.Right - FGridRect.Left) < 48) and
-           (Abs(FGridRect.Top - FGridRect.Bottom) < 48) then
-        begin
-          if FConfig.DrawPoints then begin
-            AddPoints;
-          end;
-          if FConfig.DrawLines then begin
-            AddLines;
-          end;
-        end else begin
-          FKmlWriter.Reset;
+        if FConfig.DrawPoints then begin
+          AddPoints;
+        end;
+
+        if FConfig.DrawLines then begin
+          AddLines;
         end;
       end;
     end;
