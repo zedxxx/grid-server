@@ -5,20 +5,19 @@ interface
 uses
   Types,
   SysUtils,
-  Generics.Collections,
+  u_ObjectDictionary,
   u_GridGeneratorAbstract;
 
 type
-  TGridGeneratorFactoryItem = record
+  TGridGeneratorFactoryItem = class
+  public
     GeneratorClass: TGridGeneratorClass;
     GeneratorConfig: TGridGeneratorConfig;
   end;
 
-  TGridGeneratorFactoryItems = TDictionary<string, TGridGeneratorFactoryItem>;
-
   TGridGeneratorFactory = class
   private
-    FItems: TGridGeneratorFactoryItems;
+    FItems: TObjectDictionary;
     procedure AddBuiltInItems;
     procedure LoadItems(const AIniFileName: string);
   public
@@ -44,7 +43,7 @@ uses
 
 constructor TGridGeneratorFactory.Create;
 begin
-  FItems := TGridGeneratorFactoryItems.Create;
+  FItems := TObjectDictionary.Create;
   LoadItems( ChangeFileExt(ParamStr(0), '.ini') );
   AddBuiltInItems;
 end;
@@ -57,7 +56,7 @@ end;
 
 function TGridGeneratorFactory.GetGriIdArray: TStringDynArray;
 begin
-  Result := FItems.Keys.ToArray;
+  Result := FItems.KeysToArray;
 end;
 
 procedure TGridGeneratorFactory.AddBuiltInItems;
@@ -67,6 +66,7 @@ var
 begin
   VId := 'wgs84';
   if not FItems.ContainsKey(VId) then begin
+    VItem := TGridGeneratorFactoryItem.Create;
     VItem.GeneratorClass := TGeogGridGenerator;
 
     with VItem.GeneratorConfig do begin
@@ -80,8 +80,9 @@ begin
     FItems.Add(VId, VItem);
   end;
 
-  VId := 'gk';
+  VId := 'gauss-kruger';
   if not FItems.ContainsKey(VId) then begin
+    VItem := TGridGeneratorFactoryItem.Create;
     VItem.GeneratorClass := TGaussKrugerGridGenerator;
 
     with VItem.GeneratorConfig do begin
@@ -97,6 +98,7 @@ begin
 
   VId := 'utm';
   if not FItems.ContainsKey(VId) then begin
+    VItem := TGridGeneratorFactoryItem.Create;
     VItem.GeneratorClass := TUtmGridGenerator;
 
     with VItem.GeneratorConfig do begin
@@ -137,6 +139,7 @@ begin
         VConfig.ProjInitStr := VIni.ReadString(VSectionName, 'ProjCS', '');
 
         if VConfig.GeogInitStr <> '' then begin
+          VItem := TGridGeneratorFactoryItem.Create;
           if VConfig.ProjInitStr <> '' then begin
             VItem.GeneratorClass := TProjGridGenerator;
             VItem.GeneratorConfig := VConfig;
@@ -157,9 +160,11 @@ end;
 
 function TGridGeneratorFactory.Build(const AGridId: string): TGridGeneratorAbstract;
 var
+  VObj: TObject;
   VItem: TGridGeneratorFactoryItem;
 begin
-  if FItems.TryGetValue(AGridId, VItem) then begin
+  if FItems.TryGetValue(AGridId, VObj) then begin
+    VItem := TGridGeneratorFactoryItem(VObj);
     Result := VItem.GeneratorClass.Create(VItem.GeneratorConfig);
   end else begin
     raise EGridGeneratorFactory.Create('Unknown GridID: "' + AGridId + '"');

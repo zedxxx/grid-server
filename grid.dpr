@@ -13,13 +13,14 @@ uses
   Proj4.GaussKruger in 'src\proj4\Proj4.GaussKruger.pas',
   Proj4.Utils in 'src\proj4\Proj4.Utils.pas',
   Proj4.UTM in 'src\proj4\Proj4.UTM.pas',
+  t_GeoTypes in 'src\t_GeoTypes.pas',
   u_CoordTransformer in 'src\u_CoordTransformer.pas',
   u_GridGenerator in 'src\grids\u_GridGenerator.pas',
   u_GridGeneratorAbstract in 'src\grids\u_GridGeneratorAbstract.pas',
   u_GridGeneratorFactory in 'src\grids\u_GridGeneratorFactory.pas',
   u_ProjGridGenerator in 'src\grids\u_ProjGridGenerator.pas',
   u_ObjectStack in 'src\u_ObjectStack.pas',
-  t_GeoTypes in 'src\t_GeoTypes.pas';
+  u_ObjectDictionary in 'src\u_ObjectDictionary.pas';
 
 procedure DoMain;
 const

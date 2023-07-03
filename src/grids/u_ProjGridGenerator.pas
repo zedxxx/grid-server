@@ -13,6 +13,7 @@ uses
   Proj4.UTM,
   t_GeoTypes,
   u_CoordTransformer,
+  u_ObjectDictionary,
   u_GridGeneratorAbstract;
 
 type
@@ -26,7 +27,7 @@ type
 
   TProjGridGenerator = class(TGridGeneratorAbstract)
   protected
-    FCache: TStringList;
+    FCache: TObjectDictionary;
 
     procedure AddPoints;
     procedure AddLines;
@@ -75,12 +76,7 @@ constructor TProjGridGenerator.Create(const AConfig: TGridGeneratorConfig);
 begin
   inherited Create(AConfig);
 
-  FCache := TStringList.Create;
-
-  FCache.OwnsObjects := True;
-  FCache.CaseSensitive := True;
-  FCache.Duplicates := dupError;
-  FCache.Sorted := True;
+  FCache := TObjectDictionary.Create;
 end;
 
 destructor TProjGridGenerator.Destroy;
@@ -216,7 +212,7 @@ begin
   if FConfig.ProjInitStr <> '' then begin
     if FProjCoordTransformer = nil then begin
       FProjCoordTransformer := TCoordTransformer.Create(FConfig.GeogInitStr, FConfig.ProjInitStr);
-      FCache.AddObject('PROJ', FProjCoordTransformer);
+      FCache.Add('PROJ', FProjCoordTransformer);
     end;
     SetLength(Result, 1);
     Result[0].Bounds := AGeogBounds;
@@ -241,7 +237,7 @@ function TGaussKrugerGridGenerator.GetCoordTransformer(const AGeogBounds: TTileB
   const
     CNorthSouthId: array [False..True] of string = ('S', 'N');
   var
-    I: Integer;
+    VObj: TObject;
     VId: string;
     VZone: Integer;
     VIsNorth: Boolean;
@@ -252,13 +248,13 @@ function TGaussKrugerGridGenerator.GetCoordTransformer(const AGeogBounds: TTileB
 
     VId := IntToStr(VZone) + CNorthSouthId[VIsNorth];
 
-    if FCache.Find(VId, I) then begin
-      VCoordTransformer := TCoordTransformer(FCache.Objects[I]);
+    if FCache.TryGetValue(VId, VObj) then begin
+      VCoordTransformer := TCoordTransformer(VObj);
     end else begin
       VCoordTransformer := TCoordTransformer.Create(
         sk_42, string(get_sk42_gauss_kruger_init(VZone, VIsNorth))
       );
-      FCache.AddObject(VId, VCoordTransformer);
+      FCache.Add(VId, VCoordTransformer);
     end;
 
     ASubItem.Bounds := ASubBounds;
@@ -331,7 +327,7 @@ function TUtmGridGenerator.GetCoordTransformer(const AGeogBounds: TTileBounds): 
   const
     CNorthSouthId: array [False..True] of string = ('S', 'N');
   var
-    I: Integer;
+    VObj: TObject;
     VId: string;
     VZone: Integer;
     VIsNorth: Boolean;
@@ -342,11 +338,11 @@ function TUtmGridGenerator.GetCoordTransformer(const AGeogBounds: TTileBounds): 
 
     VId := IntToStr(VZone) + CNorthSouthId[VIsNorth];
 
-    if FCache.Find(VId, I) then begin
-      VCoordTransformer := TCoordTransformer(FCache.Objects[I]);
+    if FCache.TryGetValue(VId, VObj) then begin
+      VCoordTransformer := TCoordTransformer(VObj);
     end else begin
       VCoordTransformer := TCoordTransformer.Create(wgs_84, get_utm_init(VZone, VIsNorth));
-      FCache.AddObject(VId, VCoordTransformer);
+      FCache.Add(VId, VCoordTransformer);
     end;
 
     ASubItem.Bounds := ASubBounds;
@@ -355,7 +351,6 @@ function TUtmGridGenerator.GetCoordTransformer(const AGeogBounds: TTileBounds): 
 
 var
   VZoneLeft, VZoneRight: Integer;
-  VLatBandTop, VLatBandBottom: Char;
   VSubBounds: TTileBounds;
   VMiddle: Double;
   VTop, VBottom: TDoublePoint;

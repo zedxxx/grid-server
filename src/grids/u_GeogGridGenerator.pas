@@ -128,7 +128,7 @@ const
 var
   VTileRes: Double;
 begin
-  VTileRes := 360 / (1 shl AZoom); // degrees per tile on the Equator
+  VTileRes := 360 / (1 shl AZoom);
 
   Result :=
     (AZoom < 2) or
@@ -148,10 +148,6 @@ begin
   end;
   if FStep.Y <= 0 then begin
     FStep.Y := GetDynGridStep(Z);
-  end;
-
-  if (FStep.X <= 0) or (FStep.Y <= 0) then begin
-    Exit;
   end;
 
   FLonLatRect := TilePosToLonLatRect(X, Y, Z); // wgs84
