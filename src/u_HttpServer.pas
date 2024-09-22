@@ -2,7 +2,7 @@ unit u_HttpServer;
 
 interface
 
-procedure RunHttpServer(const APortNumber: string; const AThreadsPoolSize: Integer);
+procedure RunHttpServer(const APortNumber: string; const AThreadPoolSize: Integer);
 
 implementation
 
@@ -10,10 +10,10 @@ implementation
 
 uses
   {$I mormot.uses.inc} // may include mormot.core.fpcx64mm.pas
-  Classes,
   SysUtils,
   mormot.core.unicode,
   mormot.core.base,
+  mormot.core.datetime,
   mormot.core.os,
   mormot.core.rtti,
   mormot.core.log,
@@ -25,7 +25,7 @@ uses
   u_GridGenerator;
 
 type
-  TGridHttpServer = class
+  TGridHttpServer = class(TObject)
   private
     FHttpServer: THttpServerSocketGeneric;
     FGridGenerator: TGridGenerator;
@@ -93,7 +93,7 @@ begin
       on E: Exception do begin
         ACtxt.OutContent := UTF8Encode('Error: ' + E.Message);
         Result := HTTP_SERVERERROR;
-        WriteLn(ACtxt.Url, ' >> ' + E.ClassName + ': ' + E.Message);
+        Writeln(ACtxt.Url, ' >> ' + E.ClassName + ': ' + E.Message);
         Exit;
       end;
     end;
@@ -109,7 +109,7 @@ begin
   ACtxt.OutContent := 'Bad request: ' + ACtxt.Url;
   ACtxt.OutContentType := TEXT_CONTENT_TYPE;
   Result := HTTP_BADREQUEST;
-  WriteLn(ACtxt.OutContent);
+  Writeln(ACtxt.OutContent);
 end;
 
 function TGridHttpServer.DoOnRequest(ACtxt: THttpServerRequestAbstract): Cardinal;
@@ -126,22 +126,24 @@ begin
     Writeln('proj4: ', get_proj4_dll_version());
   end;
 
+  Writeln;
   Writeln(FGridGenerator.GetInfo);
 
   Writeln;
 end;
 
-procedure RunHttpServer(const APortNumber: string; const AThreadsPoolSize: Integer);
+procedure RunHttpServer(const APortNumber: string; const AThreadPoolSize: Integer);
 var
   VServer: TGridHttpServer;
 begin
-  VServer := TGridHttpServer.Create(UTF8Encode(APortNumber), AThreadsPoolSize);
+  VServer := TGridHttpServer.Create(UTF8Encode(APortNumber), AThreadPoolSize);
   try
     VServer.PrintVersionInfo;
-    WriteLn('Running on localhost:', APortNumber);
-    WriteLn('Server threads pool size: ', AThreadsPoolSize);
-    Writeln('Press Enter to exit...');
-    ReadLn;
+    Writeln('Server running on: localhost:', APortNumber);
+    Writeln('Thread pool size: ', AThreadPoolSize);
+    Writeln;
+    Writeln('Press Enter to stop the server and exit...');
+    Readln;
   finally
     VServer.Free;
   end;

@@ -1,6 +1,8 @@
 program grid;
 
 {$APPTYPE CONSOLE}
+{$SETPEOSVERSION 5.0}
+{$SETPESUBSYSVERSION 5.0}
 
 uses
   SysUtils,
@@ -25,30 +27,31 @@ uses
 procedure DoMain;
 const
   CDefaultHttpServerPort = '8888';
-  CDefaultHttpServerThreadsPoolSize = 64;
+  CDefaultHttpServerThreadPoolSize = 64;
 var
   VStr: string;
   VPortNumber: string;
-  VThreadsPoolSize: Integer;
+  VThreadPoolSize: Integer;
 begin
   VPortNumber := CDefaultHttpServerPort;
-  VThreadsPoolSize := CDefaultHttpServerThreadsPoolSize;
+  VThreadPoolSize := CDefaultHttpServerThreadPoolSize;
 
   if ParamCount >= 1 then begin
     VStr := LowerCase(ParamStr(1));
     if (VStr = '-h') or (VStr = '--help') then begin
       Writeln('Usage: ', ExtractFileName(ParamStr(0)), ' [port] [pool_size]');
       Writeln('    <port>      - server port number (default: ', CDefaultHttpServerPort, ')');
-      Writeln('    <pool_size> - server threads pool size (default: ', CDefaultHttpServerThreadsPoolSize, ')');
+      Writeln('    <pool_size> - server thread pool size (default: ', CDefaultHttpServerThreadPoolSize, ')');
       Exit;
     end;
     VPortNumber := ParamStr(1);
   end;
+
   if ParamCount >= 2 then begin
-    TryStrToInt(ParamStr(2), VThreadsPoolSize);
+    TryStrToInt(ParamStr(2), VThreadPoolSize);
   end;
 
-  RunHttpServer(VPortNumber, VThreadsPoolSize);
+  RunHttpServer(VPortNumber, VThreadPoolSize);
 end;
 
 begin
