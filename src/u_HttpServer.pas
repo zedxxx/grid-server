@@ -122,7 +122,7 @@ procedure TGridHttpServer.PrintVersionInfo;
 begin
   Writeln(SYNOPSE_FRAMEWORK_NAME, ': ',  SYNOPSE_FRAMEWORK_FULLVERSION);
 
-  if init_proj4_dll() then begin
+  if init_proj4_dll('proj.dll', True, ExtractPath(ParamStr(0)) + 'share\proj\') then begin
     Writeln('proj4: ', get_proj4_dll_version());
   end;
 

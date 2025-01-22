@@ -231,6 +231,9 @@ begin
   FGeogLatMin := -80;
 end;
 
+type
+  TGaussKrugerCrack = class(TGaussKruger);
+
 function TGaussKrugerGridGenerator.GetCoordTransformer(const AGeogBounds: TTileBounds): TArrayOfBoundedCoordTransformer;
 
   procedure _InitSubItem(const ASubBounds: TTileBounds; var ASubItem: TBoundedCoordTransformer);
@@ -243,7 +246,7 @@ function TGaussKrugerGridGenerator.GetCoordTransformer(const AGeogBounds: TTileB
     VIsNorth: Boolean;
     VCoordTransformer: TCoordTransformer;
   begin
-    VZone := sk42_long_to_gauss_kruger_zone(ASubBounds.Left);
+    VZone := TGaussKruger.geog_long_to_zone(ASubBounds.Left);
     VIsNorth := ASubBounds.Bottom > 0;
 
     VId := IntToStr(VZone) + CNorthSouthId[VIsNorth];
@@ -251,9 +254,14 @@ function TGaussKrugerGridGenerator.GetCoordTransformer(const AGeogBounds: TTileB
     if FCache.TryGetValue(VId, VObj) then begin
       VCoordTransformer := TCoordTransformer(VObj);
     end else begin
-      VCoordTransformer := TCoordTransformer.Create(
-        sk_42, string(get_sk42_gauss_kruger_init(VZone, VIsNorth))
-      );
+      with TGaussKrugerCrack(TGaussKrugerFactory.BuildSK42) do
+      try
+        VCoordTransformer := TCoordTransformer.Create(
+          string(GetGeogInit), string(GetProjInit(VZone, VIsNorth))
+        );
+      finally
+        Free;
+      end;
       FCache.Add(VId, VCoordTransformer);
     end;
 
@@ -269,8 +277,8 @@ var
 begin
   Result := nil;
 
-  VZoneLeft := sk42_long_to_gauss_kruger_zone(AGeogBounds.Left);
-  VZoneRight := sk42_long_to_gauss_kruger_zone(AGeogBounds.Right);
+  VZoneLeft := TGaussKruger.geog_long_to_zone(AGeogBounds.Left);
+  VZoneRight := TGaussKruger.geog_long_to_zone(AGeogBounds.Right);
 
   if VZoneLeft = VZoneRight then begin
     SetLength(Result, 1);
@@ -279,7 +287,7 @@ begin
   if (VZoneRight - VZoneLeft = 1) or ( (VZoneLeft = 60) and (VZoneRight = 1) ) then begin
     SetLength(Result, 2);
 
-    VMiddle := gauss_kruger_zone_to_sk42_lon(VZoneRight);
+    VMiddle := TGaussKruger.zone_to_geog_lon(VZoneRight);
 
     // Left
     VSubBounds := AGeogBounds;
@@ -333,7 +341,7 @@ function TUtmGridGenerator.GetCoordTransformer(const AGeogBounds: TTileBounds): 
     VIsNorth: Boolean;
     VCoordTransformer: TCoordTransformer;
   begin
-    VZone := wgs84_lon_to_utm_zone(ASubBounds.Left);
+    VZone := wgs84_long_to_utm_zone(ASubBounds.Left);
     VIsNorth := ASubBounds.Bottom > 0;
 
     VId := IntToStr(VZone) + CNorthSouthId[VIsNorth];
@@ -341,7 +349,7 @@ function TUtmGridGenerator.GetCoordTransformer(const AGeogBounds: TTileBounds): 
     if FCache.TryGetValue(VId, VObj) then begin
       VCoordTransformer := TCoordTransformer(VObj);
     end else begin
-      VCoordTransformer := TCoordTransformer.Create(wgs_84, get_utm_init(VZone, VIsNorth));
+      VCoordTransformer := TCoordTransformer.Create(wgs_84, string(get_utm_init(VZone, VIsNorth)));
       FCache.Add(VId, VCoordTransformer);
     end;
 
@@ -357,8 +365,8 @@ var
 begin
   Result := nil;
 
-  VZoneLeft := wgs84_lon_to_utm_zone(AGeogBounds.Left);
-  VZoneRight := wgs84_lon_to_utm_zone(AGeogBounds.Right);
+  VZoneLeft := wgs84_long_to_utm_zone(AGeogBounds.Left);
+  VZoneRight := wgs84_long_to_utm_zone(AGeogBounds.Right);
 
   if VZoneLeft = VZoneRight then begin
     SetLength(Result, 1);
@@ -368,7 +376,7 @@ begin
 
     SetLength(Result, 2);
 
-    VMiddle := utm_zone_to_wgs84_lon(VZoneRight);
+    VMiddle := utm_zone_to_wgs84_long(VZoneRight);
 
     // Left
     VSubBounds := AGeogBounds;

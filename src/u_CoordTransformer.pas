@@ -68,7 +68,6 @@ begin
   if AProjInitCS <> '' then begin
     FProjCS := DoInit(AProjInitCS);
   end;
-
 end;
 
 destructor TCoordTransformer.Destroy;
