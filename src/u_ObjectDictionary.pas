@@ -17,9 +17,13 @@ type
     function KeysToArray: TStringDynArray; inline;
   public
     constructor Create(const AOnwsObjects: Boolean = True);
+    destructor Destroy; override;
   end;
 
 implementation
+
+uses
+  SysUtils;
 
 { TObjectDictionary }
 
@@ -33,6 +37,12 @@ begin
   FList.CaseSensitive := True;
   FList.Duplicates := dupError;
   FList.Sorted := True;
+end;
+
+destructor TObjectDictionary.Destroy;
+begin
+  FreeAndNil(FList);
+  inherited;
 end;
 
 procedure TObjectDictionary.Add(const AKey: string; const AValue: TObject);
