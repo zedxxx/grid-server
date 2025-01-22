@@ -65,9 +65,9 @@ begin
 end;
 
 begin
-  {$IFDEF DEBUG}
+  {$IF DEFINED(DEBUG) AND NOT DEFINED(FPC)}
   ReportMemoryLeaksOnShutdown := True;
-  {$ENDIF}
+  {$IFEND}
   try
     DoMain;
   except

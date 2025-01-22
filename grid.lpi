@@ -6,6 +6,7 @@
     <General>
       <Flags>
         <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
@@ -20,10 +21,11 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value=".bin\grid"/>
+            <Filename Value=".bin\$(TargetOS)\grid"/>
           </Target>
           <SearchPaths>
-            <UnitOutputDirectory Value=".lib\$(TargetCPU)-$(TargetOS)"/>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <UnitOutputDirectory Value=".dcu\$(TargetOS)-$(BuildMode)-$(FPCVer)"/>
           </SearchPaths>
           <Parsing>
             <SyntaxOptions>
@@ -39,10 +41,17 @@
           <Linking>
             <Debugging>
               <GenerateDebugInfo Value="False"/>
+              <RunWithoutDebug Value="True"/>
               <StripSymbols Value="True"/>
             </Debugging>
             <LinkSmart Value="True"/>
           </Linking>
+          <Other>
+            <CustomOptions Value="-dRELEASE"/>
+            <OtherDefines Count="1">
+              <Define0 Value="RELEASE"/>
+            </OtherDefines>
+          </Other>
         </CompilerOptions>
       </Item>
     </BuildModes>
@@ -65,10 +74,6 @@
       </Unit>
       <Unit>
         <Filename Value="src\u_GeoFunc.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
-        <Filename Value="src\u_KmlWriter.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
@@ -131,19 +136,33 @@
         <Filename Value="src\u_ObjectDictionary.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="src\writers\u_GeoJsonWriter.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src\writers\u_KmlWriter.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src\writers\i_ContentWriter.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value=".bin\grid"/>
+      <Filename Value=".bin\$(TargetOS)\grid"/>
     </Target>
     <SearchPaths>
-      <UnitOutputDirectory Value=".lib\$(TargetCPU)-$(TargetOS)"/>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <UnitOutputDirectory Value=".dcu\$(TargetOS)-$(BuildMode)-$(FPCVer)"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
+        <SyntaxMode Value="Delphi"/>
         <IncludeAssertionCode Value="True"/>
       </SyntaxOptions>
     </Parsing>
@@ -155,6 +174,9 @@
         <StackChecks Value="True"/>
       </Checks>
       <VerifyObjMethodCallValidity Value="True"/>
+      <Optimizations>
+        <OptimizationLevel Value="0"/>
+      </Optimizations>
     </CodeGeneration>
     <Linking>
       <Debugging>
@@ -164,6 +186,12 @@
         <UseExternalDbgSyms Value="True"/>
       </Debugging>
     </Linking>
+    <Other>
+      <CustomOptions Value="-dDEBUG"/>
+      <OtherDefines Count="1">
+        <Define0 Value="DEBUG"/>
+      </OtherDefines>
+    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions>
