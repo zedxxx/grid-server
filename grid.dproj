@@ -94,6 +94,9 @@
         <DCCReference Include="src\grids\u_ProjGridGenerator.pas"/>
         <DCCReference Include="src\u_ObjectStack.pas"/>
         <DCCReference Include="src\u_ObjectDictionary.pas"/>
+        <DCCReference Include="src\writers\u_GeoJsonWriter.pas"/>
+        <DCCReference Include="src\writers\u_KmlWriter.pas"/>
+        <DCCReference Include="src\writers\i_ContentWriter.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

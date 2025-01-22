@@ -5,6 +5,7 @@ interface
 uses
   Types,
   SysUtils,
+  i_ContentWriter,
   u_ObjectDictionary,
   u_GridGeneratorAbstract;
 
@@ -20,9 +21,11 @@ type
     FItems: TObjectDictionary;
     procedure AddBuiltInItems;
     procedure LoadItems(const AIniFileName: string);
+    function BuildContentWriter(const AExt: string): IContentWriter;
   public
     function Build(const AGridId: string): TGridGeneratorAbstract;
     function GetGriIdArray: TStringDynArray;
+    function GetContentType(const AFormat: string): string;
   public
     constructor Create;
     destructor Destroy; override;
@@ -36,6 +39,8 @@ uses
   Classes,
   IniFiles,
   Proj4.Defines,
+  u_GeoJsonWriter,
+  u_KmlWriter,
   u_GeogGridGenerator,
   u_ProjGridGenerator;
 
@@ -160,14 +165,50 @@ end;
 
 function TGridGeneratorFactory.Build(const AGridId: string): TGridGeneratorAbstract;
 var
+  I: Integer;
+  VId: string;
+  VExt: string;
   VObj: TObject;
   VItem: TGridGeneratorFactoryItem;
 begin
-  if FItems.TryGetValue(AGridId, VObj) then begin
+  VId := AGridId;
+  I := Pos(':', VId);
+  if I > 0 then begin
+    VExt := LowerCase(Copy(VId, I+1));
+    SetLength(VId, I-1);
+  end else begin
+    raise EGridGeneratorFactory.Create('Writer ID is not specified: "' + AGridId + '"');
+  end;
+
+  if FItems.TryGetValue(VId, VObj) then begin
     VItem := TGridGeneratorFactoryItem(VObj);
-    Result := VItem.GeneratorClass.Create(VItem.GeneratorConfig);
+    Result := VItem.GeneratorClass.Create(VItem.GeneratorConfig, Self.BuildContentWriter(VExt));
   end else begin
     raise EGridGeneratorFactory.Create('Unknown GridID: "' + AGridId + '"');
+  end;
+end;
+
+function TGridGeneratorFactory.BuildContentWriter(const AExt: string): IContentWriter;
+begin
+  if AExt = 'kml' then begin
+    Result := TKmlWriter.Create;
+  end else
+  if AExt = 'json' then begin
+    Result := TGeoJsonWriter.Create;
+  end else begin
+    raise EGridGeneratorFactory.Create('Unknown Writer ID: "' + AExt + '"');
+  end;
+end;
+
+function TGridGeneratorFactory.GetContentType(const AFormat: string): string;
+begin
+  if AFormat = 'kml' then begin
+    Result := 'application/vnd.google-earth.kml+xml';
+  end else
+  if AFormat = 'json' then begin
+    Result := 'application/json';
+  end else begin
+    raise EGridGeneratorFactory.Create('Unknown ContentType format: "' + AFormat + '"');
   end;
 end;
 

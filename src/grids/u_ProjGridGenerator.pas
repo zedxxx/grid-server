@@ -12,6 +12,7 @@ uses
   Proj4.GaussKruger,
   Proj4.UTM,
   t_GeoTypes,
+  i_ContentWriter,
   u_CoordTransformer,
   u_ObjectDictionary,
   u_GridGeneratorAbstract;
@@ -36,7 +37,10 @@ type
   public
     function GetTile(const X, Y, Z: Integer; const AStep: TDoublePoint): RawByteString; override;
   public
-    constructor Create(const AConfig: TGridGeneratorConfig); override;
+    constructor Create(
+      const AConfig: TGridGeneratorConfig;
+      const AContentWriter: IContentWriter
+    ); override;
     destructor Destroy; override;
   end;
 
@@ -44,14 +48,20 @@ type
   protected
     function GetCoordTransformer(const AGeogBounds: TTileBounds): TArrayOfBoundedCoordTransformer; override;
   public
-    constructor Create(const AConfig: TGridGeneratorConfig); override;
+    constructor Create(
+      const AConfig: TGridGeneratorConfig;
+      const AContentWriter: IContentWriter
+    ); override;
   end;
 
   TUtmGridGenerator = class(TProjGridGenerator)
   protected
     function GetCoordTransformer(const AGeogBounds: TTileBounds): TArrayOfBoundedCoordTransformer; override;
   public
-    constructor Create(const AConfig: TGridGeneratorConfig); override;
+    constructor Create(
+      const AConfig: TGridGeneratorConfig;
+      const AContentWriter: IContentWriter
+    ); override;
   end;
 
 implementation
@@ -72,9 +82,12 @@ end;
 
 { TProjGridGenerator }
 
-constructor TProjGridGenerator.Create(const AConfig: TGridGeneratorConfig);
+constructor TProjGridGenerator.Create(
+  const AConfig: TGridGeneratorConfig;
+  const AContentWriter: IContentWriter
+);
 begin
-  inherited Create(AConfig);
+  inherited Create(AConfig, AContentWriter);
 
   FCache := TObjectDictionary.Create;
 end;
@@ -102,7 +115,7 @@ begin
          FGeogCoordTransformer.GeogToWgs84(VLonLat) and
          IsLonLatInRect(VLonLat, FLonLatRect) then
       begin
-        FKmlWriter.AddPoint(VLonLat, CoordToStr(VPoint));
+        FContentWriter.AddPoint(VLonLat, CoordToStr(VPoint));
       end;
     end;
   end;
@@ -165,7 +178,7 @@ var
   I: Integer;
   VItems: TArrayOfBoundedCoordTransformer;
 begin
-  FKmlWriter.Reset;
+  FContentWriter.Reset;
 
   FStep.X := AStep.X * 1000;
   FStep.Y := AStep.Y * 1000;
@@ -204,7 +217,7 @@ begin
     end;
   end;
 
-  Result := FKmlWriter.GetContent;
+  Result := FContentWriter.GetContent;
 end;
 
 function TProjGridGenerator.GetCoordTransformer(const AGeogBounds: TTileBounds): TArrayOfBoundedCoordTransformer;
@@ -224,9 +237,12 @@ end;
 
 { TGaussKrugerGridGenerator }
 
-constructor TGaussKrugerGridGenerator.Create(const AConfig: TGridGeneratorConfig);
+constructor TGaussKrugerGridGenerator.Create(
+  const AConfig: TGridGeneratorConfig;
+  const AContentWriter: IContentWriter
+);
 begin
-  inherited Create(AConfig);
+  inherited Create(AConfig, AContentWriter);
   FGeogLatMax := 84;
   FGeogLatMin := -80;
 end;
@@ -322,9 +338,12 @@ end;
 
 { TUtmGridGenerator }
 
-constructor TUtmGridGenerator.Create(const AConfig: TGridGeneratorConfig);
+constructor TUtmGridGenerator.Create(
+  const AConfig: TGridGeneratorConfig;
+  const AContentWriter: IContentWriter
+);
 begin
-  inherited Create(AConfig);
+  inherited Create(AConfig, AContentWriter);
   FGeogLatMax := 84;
   FGeogLatMin := -80;
 end;

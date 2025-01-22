@@ -7,7 +7,7 @@ uses
   Math,
   Proj4.API,
   t_GeoTypes,
-  u_KmlWriter,
+  i_ContentWriter,
   u_CoordTransformer;
 
 type
@@ -26,8 +26,8 @@ type
     FGeogLatMax: Double;
     FGeogLatMin: Double;
 
-    FKmlWriter: TKmlWriter;
     FConfig: TGridGeneratorConfig;
+    FContentWriter: IContentWriter;
 
     FGridRect: TRect;
     FLonLatRect: TDoubleRect;
@@ -52,7 +52,10 @@ type
     function GetTile(const X, Y, Z: Integer; const AStep: TDoublePoint): RawByteString; virtual; abstract;
     property GridId: string read GetGridId;
 
-    constructor Create(const AConfig: TGridGeneratorConfig); virtual;
+    constructor Create(
+      const AConfig: TGridGeneratorConfig;
+      const AContentWriter: IContentWriter
+    ); virtual;
     destructor Destroy; override;
   end;
 
@@ -66,12 +69,16 @@ uses
 
 { TGridGeneratorAbstract }
 
-constructor TGridGeneratorAbstract.Create(const AConfig: TGridGeneratorConfig);
+constructor TGridGeneratorAbstract.Create(
+  const AConfig: TGridGeneratorConfig;
+  const AContentWriter: IContentWriter
+);
 begin
   inherited Create;
 
   FConfig := AConfig;
-  FKmlWriter := TKmlWriter.Create;
+  FContentWriter := AContentWriter;
+
   FGeogCoordTransformer := TCoordTransformer.Create(FConfig.GeogInitStr);
   FProjCoordTransformer := nil;
 
@@ -83,7 +90,6 @@ destructor TGridGeneratorAbstract.Destroy;
 begin
   FreeAndNil(FGeogCoordTransformer);
   FreeAndNil(FProjCoordTransformer);
-  FreeAndNil(FKmlWriter);
   inherited;
 end;
 
@@ -188,7 +194,7 @@ begin
     UpdateTileBoundsMinMax(VLonLatBounds);
     DoIntersectWithGeogBounds(AGeogP1, AGeogP2, VLonLatBounds);
 
-    FKmlWriter.AddLine(AGeogP1, AGeogP2, ADesc);
+    FContentWriter.AddLine(AGeogP1, AGeogP2, ADesc);
   end;
 end;
 

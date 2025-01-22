@@ -3,12 +3,12 @@ unit u_KmlWriter;
 interface
 
 uses
-  Classes,
   SysUtils,
-  t_GeoTypes;
+  t_GeoTypes,
+  i_ContentWriter;
 
 type
-  TKmlWriter = class
+  TKmlWriter = class(TInterfacedObject, IContentWriter)
   private
     FKml: RawByteString;
 
@@ -20,12 +20,13 @@ type
 
     function GetArrIndex: Integer; inline;
     function PointToStr(const APoint: TDoublePoint): RawByteString; inline;
-  public
+  private
+    { IContentWriter }
     procedure AddLine(const APoint1, APoint2: TDoublePoint; const ADesc: string);
     procedure AddPoint(const APoint: TDoublePoint; const AName: string);
 
-    procedure Reset;
     function GetContent: RawByteString;
+    procedure Reset;
   public
     constructor Create;
   end;

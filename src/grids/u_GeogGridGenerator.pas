@@ -79,7 +79,7 @@ begin
       if FGeogCoordTransformer.GeogToWgs84(VPoint) and
          IsLonLatInRect(VPoint, FLonLatRect) then
       begin
-        FKmlWriter.AddPoint(VPoint, VPointName);
+        FContentWriter.AddPoint(VPoint, VPointName);
       end;
     end;
   end;
@@ -139,7 +139,7 @@ end;
 function TGeogGridGenerator.GetTile(const X, Y, Z: Integer; const AStep: TDoublePoint): RawByteString;
 begin
   Result := '';
-  FKmlWriter.Reset;
+  FContentWriter.Reset;
 
   FStep := AStep;
 
@@ -170,7 +170,7 @@ begin
     end;
   end;
 
-  Result := FKmlWriter.GetContent;
+  Result := FContentWriter.GetContent;
 end;
 
 end.

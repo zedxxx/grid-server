@@ -2,7 +2,11 @@ unit u_HttpServer;
 
 interface
 
-procedure RunHttpServer(const APortNumber: string; const AThreadPoolSize: Integer);
+procedure RunHttpServer(
+  const APortNumber: string;
+  const AThreadPoolSize: Integer;
+  const ADefaultContentFormat: string
+);
 
 implementation
 
@@ -29,25 +33,35 @@ type
   private
     FHttpServer: THttpServerSocketGeneric;
     FGridGenerator: TGridGenerator;
+    FDefaultContentFormat: string;
     function DoOnGridRequest(ACtxt: THttpServerRequestAbstract): Cardinal;
     procedure PrintVersionInfo;
   protected
     function DoOnRequest(ACtxt: THttpServerRequestAbstract): Cardinal;
   public
-    constructor Create(const APort: UTF8String; const APoolSize: Integer);
+    constructor Create(
+      const APort: string;
+      const APoolSize: Integer;
+      const ADefaultContentFormat: string
+    );
     destructor Destroy; override;
   end;
 
 { TGridHttpServer }
 
-constructor TGridHttpServer.Create(const APort: UTF8String; const APoolSize: Integer);
+constructor TGridHttpServer.Create(
+  const APort: string;
+  const APoolSize: Integer;
+  const ADefaultContentFormat: string
+);
 begin
   inherited Create;
 
+  FDefaultContentFormat := ADefaultContentFormat;
   FGridGenerator := TGridGenerator.Create;
 
   FHttpServer := THttpAsyncServer.Create(
-    APort, nil, nil, '', APoolSize, 30000,
+    UTF8Encode(APort), nil, nil, '', APoolSize, 30000,
     [hsoNoXPoweredHeader,
      hsoNoStats,
      hsoHeadersUnfiltered,
@@ -71,14 +85,28 @@ end;
 function TGridHttpServer.DoOnGridRequest(ACtxt: THttpServerRequestAbstract): Cardinal;
 
   function _GetGridGeneratorRequest(out AReq: TGridGeneratorRequest): Boolean;
+  var
+    I: Integer;
+    VReqY: string;
   begin
     AReq.GridId := string(LowerCase(ACtxt['grid']));
+
+    VReqY := string(LowerCase(ACtxt['y']));
+    I := Pos('.', VReqY);
+    if I > 0 then begin
+      AReq.OutFormat := Copy(VReqY, I+1);
+      SetLength(VReqY, I-1);
+    end else begin
+      AReq.OutFormat := FDefaultContentFormat;
+    end;
+
     Result :=
       (AReq.GridId <> '') and
       ToDouble(ACtxt['step'], AReq.StepX) and
       ToInteger(ACtxt['z'], AReq.Z) and
       ToInteger(ACtxt['x'], AReq.X) and
-      ToInteger(ACtxt['y'], AReq.Y);
+      TryStrToInt(VReqY, AReq.Y);
+
     AReq.StepY := AReq.StepX;
   end;
 
@@ -100,22 +128,23 @@ begin
 
     if VContent <> '' then begin
       ACtxt.OutContent := VContent;
-      ACtxt.OutContentType := 'application/vnd.google-earth.kml+xml';
+      ACtxt.OutContentType := UTF8Encode(FGridGenerator.GetContentType(VReq.OutFormat));
       Result := HTTP_SUCCESS;
-      Exit;
+    end else begin
+      ACtxt.OutContent := '';
+      Result := HTTP_NOCONTENT;
     end;
+  end else begin
+    Result := DoOnRequest(ACtxt);
   end;
-
-  ACtxt.OutContent := 'Bad request: ' + ACtxt.Url;
-  ACtxt.OutContentType := TEXT_CONTENT_TYPE;
-  Result := HTTP_BADREQUEST;
-  Writeln(ACtxt.OutContent);
 end;
 
 function TGridHttpServer.DoOnRequest(ACtxt: THttpServerRequestAbstract): Cardinal;
 begin
-  ACtxt.OutContent := '';
-  Result := HTTP_NOCONTENT;
+  ACtxt.OutContent := 'Bad request: ' + ACtxt.Url;
+  ACtxt.OutContentType := TEXT_CONTENT_TYPE;
+  Result := HTTP_BADREQUEST;
+  Writeln(ACtxt.OutContent);
 end;
 
 procedure TGridHttpServer.PrintVersionInfo;
@@ -132,15 +161,20 @@ begin
   Writeln;
 end;
 
-procedure RunHttpServer(const APortNumber: string; const AThreadPoolSize: Integer);
+procedure RunHttpServer(
+  const APortNumber: string;
+  const AThreadPoolSize: Integer;
+  const ADefaultContentFormat: string
+);
 var
   VServer: TGridHttpServer;
 begin
-  VServer := TGridHttpServer.Create(UTF8Encode(APortNumber), AThreadPoolSize);
+  VServer := TGridHttpServer.Create(APortNumber, AThreadPoolSize, ADefaultContentFormat);
   try
     VServer.PrintVersionInfo;
     Writeln('Server running on: localhost:', APortNumber);
     Writeln('Thread pool size: ', AThreadPoolSize);
+    Writeln('Default format: ', ADefaultContentFormat);
     Writeln;
     Writeln('Press Enter to stop the server and exit...');
     Readln;

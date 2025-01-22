@@ -12,6 +12,7 @@ uses
 type
   TGridGeneratorRequest = record
     GridId: string;
+    OutFormat: string;
     StepX: Double;
     StepY: Double;
     X: Integer;
@@ -31,6 +32,7 @@ type
   public
     function GetTile(const ARequest: TGridGeneratorRequest): RawByteString;
     function GetInfo: string;
+    function GetContentType(const AFormat: string): string;
   public
     constructor Create;
     destructor Destroy; override;
@@ -69,6 +71,11 @@ end;
 function TGridGenerator.GetInfo: string;
 begin
   Result := 'Grids: [' + String.Join(', ', FGridGeneratorFactory.GetGriIdArray) + ']';
+end;
+
+function TGridGenerator.GetContentType(const AFormat: string): string;
+begin
+  Result := FGridGeneratorFactory.GetContentType(AFormat);
 end;
 
 function TGridGenerator.AcquireGenerator(const AGridId: string): TGridGeneratorAbstract;
@@ -122,7 +129,7 @@ function TGridGenerator.GetTile(const ARequest: TGridGeneratorRequest): RawByteS
 var
   VGenerator: TGridGeneratorAbstract;
 begin
-  VGenerator := AcquireGenerator(ARequest.GridId);
+  VGenerator := AcquireGenerator(ARequest.GridId + ':' + ARequest.OutFormat);
   try
     Result := VGenerator.GetTile(
       ARequest.X, ARequest.Y, ARequest.Z, DoublePoint(ARequest.StepX, ARequest.StepY)
