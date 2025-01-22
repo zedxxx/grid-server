@@ -3,12 +3,10 @@ unit u_ProjGridGenerator;
 interface
 
 uses
-  Types,
   Classes,
   Math,
   Proj4.API,
   Proj4.Defines,
-  Proj4.Utils,
   Proj4.GaussKruger,
   Proj4.UTM,
   t_GeoTypes,

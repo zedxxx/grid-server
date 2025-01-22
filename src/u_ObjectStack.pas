@@ -3,7 +3,7 @@ unit u_ObjectStack;
 interface
 
 uses
-  SysUtils, Classes;
+  SysUtils;
 
 type
   TObjectStack = class

@@ -3,7 +3,6 @@ unit u_GeoFunc;
 interface
 
 uses
-  Classes,
   SysUtils,
   Math,
   t_GeoTypes;
