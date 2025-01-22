@@ -182,6 +182,7 @@ begin
 
   if FItems.TryGetValue(VId, VObj) then begin
     VItem := TGridGeneratorFactoryItem(VObj);
+    VItem.GeneratorConfig.GridId := AGridId;
     Result := VItem.GeneratorClass.Create(VItem.GeneratorConfig, Self.BuildContentWriter(VExt));
   end else begin
     raise EGridGeneratorFactory.Create('Unknown GridID: "' + AGridId + '"');
